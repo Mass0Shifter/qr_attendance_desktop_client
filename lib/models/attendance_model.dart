@@ -3,41 +3,91 @@ import 'package:qr_attendance_desktop_client/models/student_model.dart';
 
 class AttendanceModel {
   late int id;
-  late String name;
+  late int count;
   late ClassModel theClassList;
-  late List<StudentModel> theAttendance;
+  late List<AttendanceItemModel> theAttendance;
+  late DateTime date;
 
   AttendanceModel({
     required this.id,
-    required this.name,
+    required this.count,
     required this.theClassList,
     required this.theAttendance,
   });
 
   AttendanceModel.fromJson(Map<String, dynamic> json) {
     id = int.parse(json['id']);
-    name = json['name'];
-    theClassList = json['class_id'];
-    theAttendance = json['lecturer_id'];
+    count = int.parse(json['class_count']);
+    theClassList = ClassModel.fromJson(json['class']);
+    theAttendance = json['attendances'] == false
+        ? [AttendanceItemModel.fromDummy()]
+        : (json['attendances'] as List)
+            .map((i) => AttendanceItemModel.fromJson(i))
+            .toList();
+    date = DateTime.parse(json['date']);
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      "class_id": theClassList.id,
+      "class_count": count,
+    };
+  }
+
+  AttendanceModel.fromDummy() {
+    id = 1;
+    count = 0;
+    theClassList = ClassModel.fromDummy();
+    theAttendance = [
+      AttendanceItemModel.fromDummy(),
+      AttendanceItemModel.fromDummy()
+    ];
+    date = DateTime.now();
   }
 }
 
 class AttendanceItemModel {
   late int id;
   late int attendanceListId;
-  late String studentId;
+  late int studentId;
+  late String studentMatric;
+  late StudentModel student;
   late DateTime timeRecord;
 
   AttendanceItemModel(
       {required this.id,
       required this.attendanceListId,
       required this.studentId,
+      required this.studentMatric,
       required this.timeRecord});
 
   AttendanceItemModel.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    attendanceListId = json['attendance_list_id'];
-    studentId = json['student_id'];
-    timeRecord = DateTime(json['time_record']);
+    id = int.parse(json['id']);
+    attendanceListId = int.parse(json['attendance_list_id']);
+    student = StudentModel.fromJson(json['student']);
+    studentId = student.id;
+    studentMatric = student.matricNumber;
+    // studentId = int.parse(json['student_id']);
+    // studentMatric = json['student_matric'];
+    timeRecord = DateTime.parse(json['time_record']);
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      "attendance_list_id": attendanceListId,
+      "student_id": studentId,
+      "student_matric": studentMatric,
+      "time_record": timeRecord.toString()
+    };
+    // "time_record" : "1997-10-14 12:00:00"
+  }
+
+  AttendanceItemModel.fromDummy() {
+    id = 0;
+    attendanceListId = 0;
+    studentId = 0;
+    studentMatric = "matric_dummy";
+    student = StudentModel.fromDummy();
+    timeRecord = DateTime.now();
   }
 }

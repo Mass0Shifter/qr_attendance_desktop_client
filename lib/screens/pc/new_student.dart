@@ -1,4 +1,9 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:qr_attendance_desktop_client/models/student_model.dart';
+import 'package:qr_attendance_desktop_client/utils/api_services.dart';
 import 'dart:convert';
 
 import 'package:qr_attendance_desktop_client/utils/in_app_images.dart';
@@ -24,19 +29,24 @@ class _NewStudentDataState extends State<NewStudentData> {
   String textOne = "Student Data";
   String textTwo = "Please fill in the fields";
   String imageBlob = InAppImages.blobHolder;
+  late File image;
+  late APIService apiService;
+  bool imaged = false;
 
   @override
   void initState() {
     department = 'building';
+    apiService = APIService();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
       backgroundColor: Colors.blue,
       body: SafeArea(
-        child: Container(
+        child: SizedBox(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
           child: SingleChildScrollView(
@@ -47,9 +57,9 @@ class _NewStudentDataState extends State<NewStudentData> {
               children: [
                 // Welcome Text
                 Container(
-                  margin: const EdgeInsets.only(top: 100),
+                  margin: const EdgeInsets.all(100),
                   padding: const EdgeInsets.symmetric(horizontal: 30),
-                  width: MediaQuery.of(context).size.width,
+                  // width: MediaQuery.of(context).size.width,
                   decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
@@ -59,6 +69,14 @@ class _NewStudentDataState extends State<NewStudentData> {
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        (imaged == false
+                            ? Image.memory(
+                                const Base64Codec().decode(imageBlob))
+                            : Image.file(
+                                image,
+                                height: 150,
+                                width: 150,
+                              )),
                         const SizedBox(height: 80),
                         Text(
                           textOne,
@@ -224,27 +242,32 @@ class _NewStudentDataState extends State<NewStudentData> {
                                                 const TextStyle(fontSize: 20),
                                           ),
                                           onPressed: () {
-                                            // String id = 0.toString();
-                                            // String fn =
-                                            //     _firstNameController.text;
-                                            // String mn =
-                                            //     _middleNameController.text;
-                                            // String ln =
-                                            //     _lastNameController.text;
-                                            // String dept = department;
-                                            // String matn =
-                                            //     _matricNumberController.text;
+                                            int id = 0;
+                                            String fn =
+                                                _firstNameController.text;
+                                            String mn =
+                                                _middleNameController.text;
+                                            String ln =
+                                                _lastNameController.text;
+                                            String dept = department;
+                                            String matn =
+                                                _matricNumberController.text;
 
-                                            // String studentDataHeader =
-                                            //     'ID,FIRSTNAME,MIDDLENAME,LASTNAME,DEPARTMENT,MATRICNUMBER';
-                                            // String studentData =
-                                            //     '$id,$fn,$mn,$ln,$dept,$matn';
-                                            // context
-                                            //     .read<FileController>()
-                                            //     .writeText(<String>[
-                                            //   studentDataHeader,
-                                            //   studentData
-                                            // ]);
+                                            StudentModel student = StudentModel(
+                                                id: id,
+                                                firstName: fn,
+                                                middleName: mn,
+                                                lastName: ln,
+                                                department: dept,
+                                                matricNumber: matn);
+
+                                            apiService
+                                                .createStudent(student, image)
+                                                .then((value) {
+                                              if (value) {
+                                                // STUDENT CREATED
+                                              }
+                                            });
                                           },
                                           child: const Padding(
                                             padding: EdgeInsets.symmetric(
@@ -265,27 +288,21 @@ class _NewStudentDataState extends State<NewStudentData> {
                           ],
                         ),
                         const SizedBox(height: 40),
-                        Image.memory(const Base64Codec().decode(imageBlob)),
                         IconButton(
                             onPressed: () async {
-                              // FilePickerResult? result =
-                              //     await FilePicker.platform.pickFiles();
+                              FilePickerResult? result =
+                                  await FilePicker.platform.pickFiles();
 
-                              // if (result != null) {
-                              //   DB.File file = DB.File(
-                              //       result.files.single.path.toString());
-                              //   Uint8List bytes =
-                              //       await file.readAsBytes(); // Uint8List
-                              //   // final byteData =
-                              //   //     bytes.buffer.asByteData(); // ByteData
-                              //   Blob blob = Blob(bytes);
-                              //   setState(() {
-                              //     imageBlob = blob.toString();
-                              //     // ByteData.view(bytes.buffer).toString();
-                              //   });
-                              // } else {
-                              //   // User canceled the picker
-                              // }
+                              if (result != null) {
+                                File file =
+                                    File(result.files.single.path.toString());
+                                setState(() {
+                                  image = file;
+                                  imaged = true;
+                                });
+                              } else {
+                                // User canceled the picker
+                              }
                             },
                             icon: const Icon(Icons.abc))
                       ]),

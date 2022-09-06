@@ -24,6 +24,8 @@ dependencies:
   provider: ^5.0.0
   intl: ^0.17.0
   dio: ^4.0.6
+  dropdown_search:
+  qr_code_scanner: 
   # image_form_field: 
   # image_picker: 
 
@@ -36,6 +38,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # assets:
-    # - assets/
-    # - assets/img
+  assets:
+    - assets/
+    - assets/img/

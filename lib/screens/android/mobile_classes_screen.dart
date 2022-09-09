@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_attendance_desktop_client/models/class_model.dart';
+import 'package:qr_attendance_desktop_client/models/global_data.dart';
 import 'package:qr_attendance_desktop_client/screens/android/mobile_class_attendance_screen.dart';
+import 'package:qr_attendance_desktop_client/screens/android/mobile_images_preview_screen.dart';
 import 'package:qr_attendance_desktop_client/utils/api_services.dart';
 import 'package:qr_attendance_desktop_client/utils/in_app_colors.dart';
 
@@ -29,17 +32,21 @@ class _MobileClassesScreenState extends State<MobileClassesScreen> {
     _classes = [];
     apiService = APIService();
 
-    apiService.getAllClasses().then((value) {
-      setState(() {
-        _classes = value;
-      });
-    });
+    // apiService.getAllClasses().then((value) {
+    //   setState(() {
+    //     _classes = value;
+    //   });
+    // });
 
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    GlobalDataBase globalData = Provider.of<GlobalDataBase>(context);
+    setState(() {
+      _classes = globalData.classes;
+    });
     return Scaffold(
         body: SafeArea(
           child: SingleChildScrollView(
@@ -60,14 +67,6 @@ class _MobileClassesScreenState extends State<MobileClassesScreen> {
                       // height: 200,
                       child: Column(
                         children: const [
-                          // Text(
-                          //   "COURSE CODE:",
-                          //   style: TextStyle(
-                          //       color: Colors.white,
-                          //       fontSize: 16,
-                          //       fontWeight: FontWeight.w400,
-                          //       fontFamily: "Ubuntu"),
-                          // ),
                           Text(
                             "HOME",
                             style: TextStyle(
@@ -169,42 +168,18 @@ class _MobileClassesScreenState extends State<MobileClassesScreen> {
                           .toList(),
                     ),
                   ),
-                  // ClipRRect(
-                  //   borderRadius: BorderRadius.circular(10),
-                  //   child: TextButton(
-                  //       style: TextButton.styleFrom(
-                  //           alignment: Alignment.center,
-                  //           padding: const EdgeInsets.symmetric(
-                  //               vertical: 32, horizontal: 120),
-                  //           backgroundColor: InAppColors.secondaryColor),
-                  //       onPressed: () {},
-                  //       child: Column(
-                  //         children: const [
-                  //           Text(
-                  //             "CLASS NAME",
-                  //             style: TextStyle(
-                  //                 fontSize: 15,
-                  //                 fontWeight: FontWeight.w600,
-                  //                 color: Colors.white),
-                  //           ),
-                  //           SizedBox(height: 5),
-                  //           Text(
-                  //             "COURSE CODE",
-                  //             style: TextStyle(
-                  //                 fontSize: 12,
-                  //                 fontWeight: FontWeight.w300,
-                  //                 color: Colors.white),
-                  //           ),
-                  //         ],
-                  //       )),
-                  // )
                 ]),
               ],
             ),
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.pushNamed(
+              context,
+              MobileImagesPreviewScreen.routeName,
+            );
+          },
           backgroundColor: const Color.fromARGB(255, 27, 74, 84),
           child: const Icon(Icons.settings),
         ));

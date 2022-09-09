@@ -53,6 +53,30 @@ class _MobileQRScanningScreenState extends State<MobileQRScanningScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
+                  // Consumer<GlobalDataBase>(
+                  //   builder: (context, globalData, child) {
+                  //     if (globalData.message != "") {
+                  //       showDialog(
+                  //           context: context,
+                  //           builder: (BuildContext context) {
+                  //             return AlertDialog(
+                  //               title: const Text("FEED BACK"),
+                  //               content: Text(globalData.message),
+                  //               actions: [
+                  //                 TextButton(
+                  //                     onPressed: () {
+                  //                       globalData.message = "";
+                  //                       Navigator.pop(context);
+                  //                     },
+                  //                     child: const Text("OK"))
+                  //               ],
+                  //             );
+                  //           });
+                  //     }
+
+                  //     return const SizedBox();
+                  //   },
+                  // ),
                   const SizedBox(height: 20),
                   if (result != null)
                     Text('${result!.code}',

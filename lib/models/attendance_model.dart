@@ -4,6 +4,7 @@ import 'package:qr_attendance_desktop_client/models/student_model.dart';
 class AttendanceModel {
   late int id;
   late int count;
+  late int classId;
   late ClassModel theClassList;
   late List<AttendanceItemModel> theAttendance;
   late DateTime date;
@@ -18,12 +19,13 @@ class AttendanceModel {
   AttendanceModel.fromJson(Map<String, dynamic> json) {
     id = int.parse(json['id']);
     count = int.parse(json['class_count']);
-    theClassList = ClassModel.fromJson(json['class']);
-    theAttendance = json['attendances'] == false
-        ? [AttendanceItemModel.fromDummy()]
-        : (json['attendances'] as List)
-            .map((i) => AttendanceItemModel.fromJson(i))
-            .toList();
+    classId = int.parse(json['class_id']);
+    // theClassList = ClassModel.fromJson(json['class']);
+    // theAttendance = json['attendances'] == false
+    //     ? [AttendanceItemModel.fromDummy()]
+    //     : (json['attendances'] as List)
+    //         .map((i) => AttendanceItemModel.fromJson(i))
+    //         .toList();
     date = DateTime.parse(json['date']);
   }
 
@@ -44,6 +46,14 @@ class AttendanceModel {
     ];
     date = DateTime.now();
   }
+
+  // getAttRecords(){
+  //   this.theAttendance = json['attendances'] == false
+  //       ? [AttendanceItemModel.fromDummy()]
+  //       : (json['attendances'] as List)
+  //           .map((i) => AttendanceItemModel.fromJson(i))
+  //           .toList();
+  // }
 }
 
 class AttendanceItemModel {
@@ -64,11 +74,11 @@ class AttendanceItemModel {
   AttendanceItemModel.fromJson(Map<String, dynamic> json) {
     id = int.parse(json['id']);
     attendanceListId = int.parse(json['attendance_list_id']);
-    student = StudentModel.fromJson(json['student']);
-    studentId = student.id;
-    studentMatric = student.matricNumber;
-    // studentId = int.parse(json['student_id']);
-    // studentMatric = json['student_matric'];
+    studentId = int.parse(json['student_id']);
+    studentMatric = json['student_matric'];
+    // student = StudentModel.fromJson(json['student']);
+    // studentId = student.id;
+    // studentMatric = student.matricNumber;
     timeRecord = DateTime.parse(json['time_record']);
   }
 

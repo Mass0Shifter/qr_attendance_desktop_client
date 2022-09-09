@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_attendance_desktop_client/models/attendance_model.dart';
 import 'package:qr_attendance_desktop_client/models/class_model.dart';
+import 'package:qr_attendance_desktop_client/models/global_data.dart';
 import 'package:qr_attendance_desktop_client/screens/android/mobile_attendance_student_list_screen.dart';
 import 'package:qr_attendance_desktop_client/utils/api_services.dart';
 import 'package:qr_attendance_desktop_client/utils/in_app_colors.dart';
@@ -42,15 +44,25 @@ class _MobileClassAttendanceScreenState
   Widget build(BuildContext context) {
     final args =
         ModalRoute.of(context)!.settings.arguments as MCASScreenArguments;
+    GlobalDataBase globalData = Provider.of<GlobalDataBase>(context);
 
-    apiService.getAllAttendanceByClass(args.class_.id).then((value) {
-      setState(() {
-        _attendanceList = value;
-        if (value[0].count == 0) {
-          noClassYet = true;
-        }
-      });
+    setState(() {
+      _attendanceList = globalData.attendance
+          .where((element) => element.classId == args.class_.id)
+          .toList();
+      if (_attendanceList.isEmpty) {
+        noClassYet = true;
+      }
     });
+
+    // apiService.getAllAttendanceByClass(args.class_.id).then((value) {
+    //   setState(() {
+    //     _attendanceList = value;
+    //     if (value[0].count == 0) {
+    //       noClassYet = true;
+    //     }
+    //   });
+    // });
 
     return Scaffold(
       body: SafeArea(
@@ -131,7 +143,7 @@ class _MobileClassAttendanceScreenState
             const SizedBox(height: 10),
             Visibility(
                 visible: noClassYet,
-                child: Text("NO CLASS LIST YET, Create One")),
+                child: const Text("NO CLASS LIST YET, Create One")),
             Visibility(
               visible: !noClassYet,
               child: Padding(
@@ -273,26 +285,25 @@ class _MobileClassAttendanceScreenState
                       style: ElevatedButton.styleFrom(
                           primary: InAppColors.secondaryColor),
                       onPressed: () {
-                        if (_attendanceList[0].count != 0) {
-                          int classCount = _attendanceList.last.count + 1;
-                          AttendanceModel model = AttendanceModel(
-                              id: 0,
-                              count: classCount,
-                              theClassList: args.class_,
-                              theAttendance: [AttendanceItemModel.fromDummy()]);
-                          apiService.createAttendance(model).then((value) {
-                            Navigator.pushNamedAndRemoveUntil(
-                              context,
-                              MobileClassAttendanceScreen.routeName,
-                              (route) {
-                                if (route.isFirst) {
-                                  return true;
-                                }
-                                return false;
-                              },
-                              arguments: MCASScreenArguments(args.class_),
-                            );
-                          });
+                        if (globalData.needToReload != false) {
+                          if (_attendanceList[0].count != 0) {
+                            int classCount = _attendanceList.last.count + 1;
+                            AttendanceModel model = AttendanceModel(
+                                id: 0,
+                                count: classCount,
+                                theClassList: args.class_,
+                                theAttendance: [
+                                  AttendanceItemModel.fromDummy()
+                                ]);
+                            apiService.createAttendance(model).then((value) {
+                              globalData.needToReload = true;
+                              globalData.refreshData(false).then((value) {
+                                int count = 0;
+                                Navigator.of(context)
+                                    .popUntil((_) => count++ >= 2);
+                              });
+                            });
+                          }
                         }
                       },
                       child: const Text("Create Class"))

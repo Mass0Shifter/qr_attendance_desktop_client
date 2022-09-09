@@ -21,9 +21,9 @@ class ClassModel {
     courseCode = json['course_code'];
     studentIds = json['student_ids'];
     lecturer = json['lecturer_id'];
-    studentObjects = (json['students'] as List)
-        .map((i) => StudentModel.fromJson(i))
-        .toList();
+    // studentObjects = (json['students'] as List)
+    // .map((i) => StudentModel.fromJson(i))
+    // .toList();
   }
 
   Map<String, dynamic> toJson() {

@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:qr_attendance_desktop_client/models/attendance_model.dart';
 import 'package:qr_attendance_desktop_client/models/class_model.dart';
+import 'package:qr_attendance_desktop_client/models/global_data.dart';
+import 'package:qr_attendance_desktop_client/models/student_model.dart';
 import 'package:qr_attendance_desktop_client/screens/pc/desktop_attendances_screen.dart';
 import 'package:qr_attendance_desktop_client/screens/pc/desktop_students_screen.dart';
 import 'package:qr_attendance_desktop_client/screens/pc/new_class.dart';
 import 'package:qr_attendance_desktop_client/utils/api_services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class DesktopClassesScreen extends StatefulWidget {
   // final dynamic drawer;
@@ -20,20 +25,25 @@ class _DesktopClassesScreenState extends State<DesktopClassesScreen> {
   final TextEditingController _searchController = TextEditingController();
   final double gapping = 20;
   List<ClassModel> _classes = [];
+  List<StudentModel> _students = [];
+  List<AttendanceModel> _attendanceRecords = [];
 
   @override
   void initState() {
     apiService = APIService();
-    apiService.getAllClasses().then((value) {
-      setState(() {
-        _classes = value;
-      });
-    });
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    GlobalDataBase globalData = Provider.of<GlobalDataBase>(context);
+
+    setState(() {
+      _students = globalData.students;
+      _classes = globalData.classes;
+      _attendanceRecords = globalData.attendance;
+    });
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 30, 30, 30),
@@ -204,9 +214,9 @@ class _DesktopClassesScreenState extends State<DesktopClassesScreen> {
                             ]),
                       ),
                       const SizedBox(height: 10),
-                      const Text(
-                        "50",
-                        style: TextStyle(
+                      Text(
+                        _students.length.toString(),
+                        style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
@@ -257,9 +267,9 @@ class _DesktopClassesScreenState extends State<DesktopClassesScreen> {
                             ]),
                       ),
                       const SizedBox(height: 10),
-                      const Text(
-                        "5",
-                        style: TextStyle(
+                      Text(
+                        _classes.length.toString(),
+                        style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
@@ -311,9 +321,9 @@ class _DesktopClassesScreenState extends State<DesktopClassesScreen> {
                             ]),
                       ),
                       const SizedBox(height: 10),
-                      const Text(
-                        "13",
-                        style: TextStyle(
+                      Text(
+                        _attendanceRecords.length.toString(),
+                        style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
@@ -348,58 +358,99 @@ class _DesktopClassesScreenState extends State<DesktopClassesScreen> {
                   DataColumn(label: Text("Lecturer ID")),
                   DataColumn(label: Text("Actions")),
                 ],
-                rows: _classes
-                    .map((e) => DataRow(cells: [
-                          DataCell(Text(e.name)),
-                          DataCell(Text(e.courseCode)),
-                          DataCell(Text(e.studentIds)),
-                          DataCell(Text(e.lecturer)),
-                          DataCell(Row(
-                            children: [
-                              TextButton(
-                                child: const Text("View Students"),
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return SimpleDialog(
-                                          title: const Text(
-                                              'Students In Attendance'),
-                                          children: e.studentObjects
-                                              .map((st) => SimpleDialogOption(
-                                                  onPressed: () {},
-                                                  child: Row(children: [
-                                                    SizedBox(
-                                                      width: 50,
-                                                      height: 50,
-                                                      child: Image.network(
-                                                        st.imageURL,
-                                                        fit: BoxFit.cover,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 10),
-                                                    Text(
-                                                      st.getFullName(),
-                                                    ),
-                                                    const SizedBox(width: 10),
-                                                    Text(
-                                                      st.matricNumber,
-                                                    ),
-                                                    const SizedBox(width: 10),
-                                                  ])))
-                                              .toList());
-                                    },
+                rows: _classes.map((e) {
+                  // e.studentObjects = (e.studentIds
+                  //         .replaceAll(" ", "")
+                  //         .split(","))
+                  //     .map((e) => globalData.students
+                  //         .firstWhere((element) => element.matricNumber == (e)))
+                  //     .toList();
+                  return DataRow(cells: [
+                    DataCell(Text(e.name)),
+                    DataCell(Text(e.courseCode)),
+                    DataCell(Text(e.studentIds)),
+                    DataCell(Text(e.lecturer)),
+                    DataCell(Row(
+                      children: [
+                        TextButton(
+                          child: const Text("View Students"),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return SimpleDialog(
+                                    title: const Text('Students In Attendance'),
+                                    children: e.studentObjects
+                                        .map((st) => SimpleDialogOption(
+                                            onPressed: () {},
+                                            child: Row(children: [
+                                              SizedBox(
+                                                width: 50,
+                                                height: 50,
+                                                child: CachedNetworkImage(
+                                                  imageUrl: st.imageURL,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Text(
+                                                st.getFullName(),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Text(
+                                                st.matricNumber,
+                                              ),
+                                              const SizedBox(width: 10),
+                                            ])))
+                                        .toList());
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 5),
+                        TextButton(
+                          child: const Text("View Attendances"),
+                          onPressed: () {
+                            Navigator.pushNamed(
+                                context, DesktopAttendancesScreen.routeName,
+                                arguments: DASScreenArguments(e.id));
+                          },
+                        ),
+                        const SizedBox(width: 5),
+                        TextButton(
+                            child: const Text("Delete"),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Delete Class'),
+                                    content: Text(
+                                        "Are you sure want to delete '${e.name}'? Because all attendances under it will be deleted as well."),
+                                    actions: [
+                                      TextButton(
+                                          onPressed: () {
+                                            apiService
+                                                .deleteClass(e.id)
+                                                .then((value) {
+                                              globalData
+                                                  .refreshData(false)
+                                                  .then((nono) {
+                                                setState(() {});
+                                                Navigator.pop(context);
+                                              });
+                                            });
+                                          },
+                                          child: const Text("Delete"))
+                                    ],
                                   );
                                 },
-                              ),
-                              const SizedBox(width: 5),
-                              TextButton(
-                                  child: const Text("Delete"),
-                                  onPressed: () {}),
-                            ],
-                          )),
-                        ]))
-                    .toList()),
+                              );
+                            }),
+                      ],
+                    )),
+                  ]);
+                }).toList()),
           ],
         ),
       )),
@@ -496,29 +547,29 @@ class _DesktopClassesScreenState extends State<DesktopClassesScreen> {
               ),
             ),
           ),
-          //Attendence
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const DesktopAttendancesScreen()));
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Row(
-                children: const [
-                  Icon(Icons.view_list, color: Color.fromARGB(255, 27, 78, 89)),
-                  SizedBox(width: 10),
-                  Text(
-                    "Attendence",
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          // //Attendence
+          // TextButton(
+          //   onPressed: () {
+          //     Navigator.push(
+          //         context,
+          //         MaterialPageRoute(
+          //             builder: (context) => const DesktopAttendancesScreen()));
+          //   },
+          //   child: Container(
+          //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          //     child: Row(
+          //       children: const [
+          //         Icon(Icons.view_list, color: Color.fromARGB(255, 27, 78, 89)),
+          //         SizedBox(width: 10),
+          //         Text(
+          //           "Attendence",
+          //           style: TextStyle(
+          //               color: Colors.white, fontWeight: FontWeight.w600),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // ),
         ]),
       ),
     );

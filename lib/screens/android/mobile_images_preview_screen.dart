@@ -1,38 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:qr_attendance_desktop_client/models/attendance_model.dart';
 import 'package:qr_attendance_desktop_client/models/global_data.dart';
-import 'package:qr_attendance_desktop_client/screens/android/mobile_qr_scanning_screen.dart';
+import 'package:qr_attendance_desktop_client/models/student_model.dart';
 import 'package:qr_attendance_desktop_client/utils/api_services.dart';
 import 'package:qr_attendance_desktop_client/utils/in_app_colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class MSALScreenArguments {
-  final AttendanceModel attendanceModel;
+// class MIPScreenArguments {
+//   final AttendanceModel attendanceModel;
 
-  MSALScreenArguments(this.attendanceModel);
-}
+//   MIPScreenArguments(this.attendanceModel);
+// }
 
-class MobileStudentAttendanceListScreen extends StatefulWidget {
+class MobileImagesPreviewScreen extends StatefulWidget {
   // final AttendanceModel attendanceModel;
-  const MobileStudentAttendanceListScreen({Key? key}) : super(key: key);
-  static const routeName = '/mobile/student_attendance_list_screen';
+  const MobileImagesPreviewScreen({Key? key}) : super(key: key);
+  static const routeName = '/mobile/all_students';
 
   @override
-  State<MobileStudentAttendanceListScreen> createState() =>
-      _MobileStudentAttendanceListScreenState();
+  State<MobileImagesPreviewScreen> createState() =>
+      _MobileImagesPreviewScreenState();
 }
 
-class _MobileStudentAttendanceListScreenState
-    extends State<MobileStudentAttendanceListScreen> {
-  String get pageHeader => ('Lecture Schedule');
-  late List<AttendanceItemModel> _attendanceItemList;
+class _MobileImagesPreviewScreenState extends State<MobileImagesPreviewScreen> {
+  String get pageHeader => ('All Students In Database');
+  late List<StudentModel> _students;
   late APIService apiService;
 
   @override
   void initState() {
-    _attendanceItemList = [];
+    _students = [];
     apiService = APIService();
 
     super.initState();
@@ -40,22 +37,18 @@ class _MobileStudentAttendanceListScreenState
 
   @override
   Widget build(BuildContext context) {
-    final args =
-        ModalRoute.of(context)!.settings.arguments as MSALScreenArguments;
+    // final args =
+    //     ModalRoute.of(context)!.settings.arguments as MIPScreenArguments;
 
-    GlobalDataBase globalData = Provider.of<GlobalDataBase>(context);
-
-    setState(() {
-      _attendanceItemList = globalData.attendance
-          .firstWhere((element) => element.id == args.attendanceModel.id)
-          .theAttendance;
-    });
-
-    // apiService.getAttendanceByID(args.attendanceModel.id).then((value) {
+    // apiService.getAllStudents().then((value) {
     //   setState(() {
-    //     _attendanceItemList = value.theAttendance;
+    //     _students = value;
     //   });
     // });
+    GlobalDataBase globalData = Provider.of<GlobalDataBase>(context);
+    setState(() {
+      _students = globalData.students;
+    });
 
     return Scaffold(
       body: SafeArea(
@@ -75,8 +68,8 @@ class _MobileStudentAttendanceListScreenState
                           bottomRight: Radius.circular(20))),
                   // height: 200,
                   child: Column(
-                    children: [
-                      const Text(
+                    children: const [
+                      Text(
                         "CLASS",
                         style: TextStyle(
                             color: Colors.white,
@@ -85,8 +78,8 @@ class _MobileStudentAttendanceListScreenState
                             fontFamily: "Ubuntu"),
                       ),
                       Text(
-                        "${args.attendanceModel.theClassList.name.toUpperCase()} : ${args.attendanceModel.theClassList.courseCode.toUpperCase()} ",
-                        style: const TextStyle(
+                        "ALL STUDENTS ",
+                        style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
@@ -126,18 +119,18 @@ class _MobileStudentAttendanceListScreenState
             ),
             //App Bar End
 
-            Text(
-              "Total Students : ${_attendanceItemList.length}",
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            // const Text(
+            //   "Choose class:",
+            //   style: TextStyle(
+            //     fontSize: 15,
+            //     fontWeight: FontWeight.w600,
+            //   ),
+            // ),
             const SizedBox(height: 10),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
-                  children: _attendanceItemList
+                  children: _students
                       .map((item) => Padding(
                             padding: const EdgeInsets.symmetric(vertical: 5),
                             child: ClipRRect(
@@ -155,7 +148,7 @@ class _MobileStudentAttendanceListScreenState
                                     builder: (BuildContext context) {
                                       return SimpleDialog(
                                           alignment: Alignment.center,
-                                          title: Text(item.student.matricNumber,
+                                          title: Text(item.matricNumber,
                                               textAlign: TextAlign.center),
                                           children: [
                                             Stack(
@@ -165,8 +158,7 @@ class _MobileStudentAttendanceListScreenState
                                                   borderRadius:
                                                       BorderRadius.circular(50),
                                                   child: CachedNetworkImage(
-                                                    imageUrl:
-                                                        item.student.imageURL,
+                                                    imageUrl: item.imageURL,
                                                     height: 400,
                                                     // width: 100,
                                                     fit: BoxFit.fitWidth,
@@ -197,8 +189,8 @@ class _MobileStudentAttendanceListScreenState
                                                                 .circular(20)),
                                                     alignment: Alignment.center,
                                                     height: 40,
-                                                    child: Text(item.student
-                                                        .getFullName()),
+                                                    child: Text(
+                                                        item.getFullName()),
                                                   ),
                                                 )
                                               ],
@@ -218,25 +210,44 @@ class _MobileStudentAttendanceListScreenState
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
-                                          ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(50),
-                                            child: CachedNetworkImage(
-                                              imageUrl: item.student.imageURL,
-                                              height: 60,
-                                              width: 60,
-                                              fit: BoxFit.cover,
-                                              progressIndicatorBuilder:
-                                                  (context, url,
+                                          Stack(
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(50),
+                                                child: CachedNetworkImage(
+                                                  imageUrl: item.imageURL,
+                                                  height: 60,
+                                                  width: 60,
+                                                  fit: BoxFit.cover,
+                                                  progressIndicatorBuilder: (context,
+                                                          url,
                                                           downloadProgress) =>
                                                       CircularProgressIndicator(
                                                           value:
                                                               downloadProgress
                                                                   .progress),
-                                              errorWidget:
-                                                  (context, url, error) =>
+                                                  errorWidget: (context, url,
+                                                          error) =>
                                                       const Icon(Icons.error),
-                                            ),
+                                                ),
+                                              ),
+                                              Positioned(
+                                                  right: 0,
+                                                  bottom: 0,
+                                                  child: Container(
+                                                    height: 20,
+                                                    width: 20,
+                                                    alignment: Alignment.center,
+                                                    decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(50)),
+                                                    child: Text(
+                                                        item.id.toString()),
+                                                  ))
+                                            ],
                                           ),
                                         ],
                                       ),
@@ -254,7 +265,7 @@ class _MobileStudentAttendanceListScreenState
                                                       InAppColors.primaryColor),
                                               const SizedBox(width: 10),
                                               Text(
-                                                item.student.matricNumber,
+                                                item.matricNumber,
                                                 style: const TextStyle(
                                                     fontSize: 18,
                                                     fontWeight: FontWeight.w600,
@@ -272,7 +283,7 @@ class _MobileStudentAttendanceListScreenState
                                                       InAppColors.primaryColor),
                                               const SizedBox(width: 10),
                                               Text(
-                                                item.student.getFullName(),
+                                                item.getFullName(),
                                                 style: const TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w300,
@@ -285,14 +296,12 @@ class _MobileStudentAttendanceListScreenState
                                           //Time Start
                                           Row(
                                             children: [
-                                              Icon(Icons.access_time,
+                                              Icon(Icons.abc,
                                                   color:
                                                       InAppColors.primaryColor),
                                               const SizedBox(width: 10),
                                               Text(
-                                                DateFormat('hh:mm aaa')
-                                                    .format(item.timeRecord)
-                                                    .toString(),
+                                                item.department,
                                                 style: const TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w300,
@@ -312,96 +321,21 @@ class _MobileStudentAttendanceListScreenState
                       .toList()),
             ),
 
-            // ClipRRect(
-            //   borderRadius: BorderRadius.circular(10),
-            //   child: TextButton(
-            //     style: TextButton.styleFrom(
-            //         alignment: Alignment.center,
-            //         padding: const EdgeInsets.symmetric(vertical: 20),
-            //         backgroundColor: InAppColors.secondaryColor),
-            //     onPressed: () {},
-            //     child: Padding(
-            //       padding: const EdgeInsets.symmetric(horizontal: 20),
-            //       child: Row(
-            //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //         children: [
-            //           Column(
-            //             mainAxisAlignment: MainAxisAlignment.center,
-            //             children: const [
-            //               Text(
-            //                 "Class 1",
-            //                 style: TextStyle(
-            //                     fontSize: 15,
-            //                     fontWeight: FontWeight.w600,
-            //                     color: Colors.white),
-            //               ),
-            //             ],
-            //           ),
-            //           Column(
-            //             mainAxisAlignment: MainAxisAlignment.center,
-            //             crossAxisAlignment: CrossAxisAlignment.start,
-            //             children: [
-            //               //Date Start
-            //               Row(
-            //                 children: [
-            //                   Icon(Icons.calendar_month,
-            //                       color: InAppColors.primaryColor),
-            //                   const SizedBox(width: 10),
-            //                   const Text(
-            //                     "12-12-2022",
-            //                     style: TextStyle(
-            //                         fontSize: 15,
-            //                         fontWeight: FontWeight.w400,
-            //                         color: Colors.white),
-            //                   ),
-            //                 ],
-            //               ),
-            //               //Date End
-            //               const SizedBox(height: 10),
-            //               //Time Start
-            //               Row(
-            //                 children: [
-            //                   Icon(Icons.access_time,
-            //                       color: InAppColors.primaryColor),
-            //                   const SizedBox(width: 10),
-            //                   const Text(
-            //                     "8:00AM",
-            //                     style: TextStyle(
-            //                         fontSize: 15,
-            //                         fontWeight: FontWeight.w400,
-            //                         color: Colors.white),
-            //                   ),
-            //                 ],
-            //               ),
-            //               //Time End
-            //             ],
-            //           ),
-            //         ],
-            //       ),
-            //     ),
-            //   ),
-            // ),
-
             const SizedBox(height: 30),
           ]),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(
-            context,
-            MobileQRScanningScreen.routeName,
-            arguments: MQRSScreenArguments(args.attendanceModel),
-          );
-          // Navigator.push(
-          //     context,
-          //     MaterialPageRoute(
-          //         builder: ((context) =>
-          //             MobileQRScanningScreen(attendanceModel: args.attendanceModel))));
-        },
-        backgroundColor: const Color.fromARGB(255, 27, 74, 84),
-        child: const Icon(Icons.qr_code),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     Navigator.pushNamed(
+      //       context,
+      //       MobileQRScanningScreen.routeName,
+      //       arguments: MQRSScreenArguments(args.attendanceModel),
+      //     );
+      //   },
+      //   backgroundColor: const Color.fromARGB(255, 27, 74, 84),
+      //   child: const Icon(Icons.qr_code),
+      // ),
     );
   }
 }

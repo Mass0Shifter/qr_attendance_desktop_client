@@ -26,8 +26,10 @@ dependencies:
   dio: ^4.0.6
   dropdown_search:
   qr_code_scanner: 
+  responsive_util: ^0.4.0
   # image_form_field: 
   # image_picker: 
+  cached_network_image: 
 
 dev_dependencies:
   flutter_test:
